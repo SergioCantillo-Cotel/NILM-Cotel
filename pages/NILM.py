@@ -9,7 +9,7 @@ credentials = tools.bigquery_auth()
 
 st.sidebar.markdown("##### Parámetros de Visualización")
 try:
-    fecha_ini, fecha_fin = st.sidebar.date_input("Periodo", (pd.Timestamp.now() - - timedelta(hours=5) - pd.Timedelta(weeks=1), pd.Timestamp.now() - timedelta(hours=5)), min_value='2025-05-15', max_value=pd.Timestamp.now() - timedelta(hours=5), key='rango_fecha_NILM')
+    fecha_ini, fecha_fin = st.sidebar.date_input("Periodo", (pd.Timestamp.now() - timedelta(hours=5) - pd.Timedelta(weeks=1), pd.Timestamp.now() - timedelta(hours=5)), min_value='2025-05-15', max_value=pd.Timestamp.now() - timedelta(hours=5), key='rango_fecha_NILM')
     if fecha_ini == fecha_fin:
         raise ValueError("fechas iguales")
 except ValueError as e:
