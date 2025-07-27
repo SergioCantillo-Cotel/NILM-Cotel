@@ -5,7 +5,6 @@ import requests_cache, openmeteo_requests
 from retry_requests import retry
 from google.oauth2 import service_account
 from google.cloud import bigquery
-from pandas_gbq import read_gbq
 import pandas as pd
 import numpy as np
 import polars as pl
