@@ -9,7 +9,7 @@ credentials = tools.bigquery_auth()
 
 st.sidebar.markdown("##### Parámetros de Visualización")
 try:
-    fecha_ini, fecha_fin = st.sidebar.date_input("Periodo", (pd.Timestamp.now() - timedelta(hours=5) - pd.Timedelta(weeks=1), pd.Timestamp.now() - timedelta(hours=5)), min_value='2025-05-15', max_value=pd.Timestamp.now() - timedelta(hours=5), key='rango_fecha_NILM')
+    fecha_ini, fecha_fin = st.sidebar.date_input("Periodo", (pd.Timestamp.now() - pd.Timedelta(hours=5) - pd.Timedelta(weeks=1), pd.Timestamp.now() - pd.Timedelta(hours=5)), min_value='2025-05-15', max_value=pd.Timestamp.now() - pd.Timedelta(hours=5), key='rango_fecha_NILM')
     if fecha_ini == fecha_fin:
         raise ValueError("fechas iguales")
 except ValueError as e:
@@ -17,7 +17,7 @@ except ValueError as e:
         st.toast("Las fechas no pueden ser iguales. Por favor, elija un rango válido", icon="🚨")
     else:
         st.toast("Esperando la seleccion de fecha. Por favor, elija un rango válido.", icon="⏳")
-    fecha_ini, fecha_fin = pd.Timestamp.now() - pd.Timedelta(weeks=1) - timedelta(hours=5), pd.Timestamp.now() - timedelta(hours=5)
+    fecha_ini, fecha_fin = pd.Timestamp.now() - pd.Timedelta(weeks=1) - pd.Timedelta(hours=5), pd.Timestamp.now() - pd.Timedelta(hours=5)
 
 config_perc = st.sidebar.checkbox("Mostrar distribución de consumo energético en periodo de visualización", value=False, key='config_perc_NILM')
 config_hist = st.sidebar.checkbox("Mostrar maximos y promedios de consumo energético en periodo de visualización", value=False, key='config_hist_NILM')
