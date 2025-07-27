@@ -11,3 +11,4 @@ scipy
 google-cloud-bigquery
 polars
 tensorflow
+pathlib
