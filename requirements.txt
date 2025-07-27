@@ -1,1 +1,13 @@
-
+streamlit_autorefresh
+pytz
+requests_cache
+retry_requests
+openmeteo_requests
+datetime
+plotly
+keras
+requests
+scipy
+google-cloud-bigquery
+polars
+tensorflow
