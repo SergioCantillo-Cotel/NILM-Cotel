@@ -1,7 +1,7 @@
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 from datetime import datetime, timedelta
-import requests_cache, holidays, openmeteo_requests, math, pyarrow, gc
+import requests_cache, openmeteo_requests
 from retry_requests import retry
 from google.oauth2 import service_account
 from google.cloud import bigquery
