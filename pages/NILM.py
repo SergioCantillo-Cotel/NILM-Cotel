@@ -25,18 +25,18 @@ lat, lon = 3.4793949016367822, -76.52284557701176
 datos = tools.get_climate_data(lat, lon)
 
 modelo_IA = ia_model.get_IA_model()
-caracteristicas = ia_model.datos_Exog(db_pow, datos).drop(columns=['ds'])
-car2 = caracteristicas.copy()
-Y_hat_raw = modelo_IA.predict(caracteristicas.values.reshape(-1, 1, caracteristicas.shape[1]))
-Y_hat_rec = ia_model.reconcile(car2,Y_hat_raw)
-Y_hat_df2 = pd.DataFrame(Y_hat_rec, columns=['Aires Acondicionados','SSFV','Otros'])
-Y_hat_df2.index = db_pow.loc[db_pow["unique_id"] == 'General', "ds"].reset_index(drop=True)
 try:
+    caracteristicas = ia_model.datos_Exog(db_pow, datos).drop(columns=['ds'])
+    car2 = caracteristicas.copy()
+    Y_hat_raw = modelo_IA.predict(caracteristicas.values.reshape(-1, 1, caracteristicas.shape[1]))
+    Y_hat_rec = ia_model.reconcile(car2,Y_hat_raw)
+    Y_hat_df2 = pd.DataFrame(Y_hat_rec, columns=['Aires Acondicionados','SSFV','Otros'])
+    Y_hat_df2.index = db_pow.loc[db_pow["unique_id"] == 'General', "ds"].reset_index(drop=True)
+
     metrics = tools.get_metrics(
         db_pow.loc[db_pow["unique_id"] == 'General', "value"].iloc[-1],
         Y_hat_df2['Aires Acondicionados'].iloc[-1],
-        Y_hat_df2['SSFV'].iloc[-1],
-        Y_hat_df2['Otros'].iloc[-1]
+        Y_hat_df2['SSFV'].iloc[-1],Y_hat_df2['Otros'].iloc[-1]
     )
 
     submedidores = tools.get_submedidores(metrics)
