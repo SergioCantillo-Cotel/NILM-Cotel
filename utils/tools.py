@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 import polars as pl
 from pathlib import Path
+import pytz
 
 credenciales_json = st.secrets["gcp_service_account"]
 BIGQUERY_PROJECT_ID = st.secrets["bigquery"]["project_id"]
@@ -74,6 +75,7 @@ def gen_others_load(df):
     return result
 
 def get_climate_data(lat, lon):
+    tz_colombia = pytz.timezone("America/Bogota")
     session = retry(requests_cache.CachedSession('.cache', expire_after=3600), retries=5, backoff_factor=0.2)
     client = openmeteo_requests.Client(session=session)
     
@@ -82,7 +84,10 @@ def get_climate_data(lat, lon):
         "minutely_15": ["temperature_2m", "relative_humidity_2m", "precipitation"],
         "start_date": "2025-05-15","end_date": (datetime.now()).strftime("%Y-%m-%d")})[0].Minutely15()
 
-    start, end = datetime.fromtimestamp(r.Time()), datetime.fromtimestamp(r.TimeEnd())
+    #start, end = datetime.fromtimestamp(r.Time()), datetime.fromtimestamp(r.TimeEnd())
+    start = datetime.utcfromtimestamp(r.Time()).replace(tzinfo=timezone.utc).astimezone(tz_colombia)
+    end = datetime.utcfromtimestamp(r.TimeEnd()).replace(tzinfo=timezone.utc).astimezone(tz_colombia)
+    
     st.write(start, end)
     interval = timedelta(seconds=r.Interval())
     timestamps = [start + i * interval for i in range((end - start) // interval)]
