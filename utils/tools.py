@@ -86,10 +86,11 @@ def get_climate_data(lat, lon):
     interval = timedelta(seconds=r.Interval())
     timestamps = [start + i * interval for i in range((end - start) // interval)]
     df = pl.DataFrame({"ds": timestamps,"T2M": r.Variables(0).ValuesAsNumpy(),"RH2M": r.Variables(1).ValuesAsNumpy(),"PRECTOTCORR": r.Variables(2).ValuesAsNumpy()})
-    start_filter, now = datetime(2025, 5, 15, 16, 15), datetime.now() - pd.Timedelta(hours=5)
+    start_filter, now = datetime(2025, 5, 15, 16, 15), datetime.now()
     df = df.filter((pl.col("ds") >= start_filter) & (pl.col("ds") <= now))
     df_pandas = df.to_pandas()
-    return df_pandas
+    df_pandas.index -= pd.Timedelta(hours=5)
+    return df_pandas.loc["2025-05-15 16:15:00":datetime.now() - pd.Timedelta(hours=5)].reset_index()
 
 # Función para obtener las métricas
 def get_metrics(general, ac, ssfv, otros):
