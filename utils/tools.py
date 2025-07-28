@@ -90,8 +90,8 @@ def get_climate_data(lat, lon):
     start_filter, now = datetime(2025, 5, 15, 16, 15), datetime.now()
     df = df.with_columns([(pl.col("ds") - pl.duration(hours=5)).alias("ds")])
     df = df.filter((pl.col("ds") >= start_filter) & (pl.col("ds") <= now))
-    st.write(df_pandas)
     df_pandas = df.to_pandas()
+    st.write(df_pandas)
     return df_pandas
    
 # Función para obtener las métricas
