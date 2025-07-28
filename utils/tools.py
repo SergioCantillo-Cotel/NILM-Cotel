@@ -1,6 +1,6 @@
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import requests_cache, openmeteo_requests
 from retry_requests import retry
 from google.oauth2 import service_account
