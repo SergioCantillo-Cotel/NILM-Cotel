@@ -85,16 +85,16 @@ def get_climate_data(lat, lon):
         "start_date": "2025-05-15","end_date": (datetime.now()).strftime("%Y-%m-%d")})[0].Minutely15()
 
     #start, end = datetime.fromtimestamp(r.Time()), datetime.fromtimestamp(r.TimeEnd())
-    start = datetime.utcfromtimestamp(r.Time()).replace(tzinfo=timezone.utc).astimezone(tz_colombia)
-    end = datetime.utcfromtimestamp(r.TimeEnd()).replace(tzinfo=timezone.utc).astimezone(tz_colombia)
+    start = datetime.utcfromtimestamp(r.Time()).replace(tzinfo=timezone.utc).astimezone(tz_colombia).replace(tzinfo=None)
+    end = datetime.utcfromtimestamp(r.TimeEnd()).replace(tzinfo=timezone.utc).astimezone(tz_colombia).replace(tzinfo=None)
     
     st.write(start, end)
     interval = timedelta(seconds=r.Interval())
     timestamps = [start + i * interval for i in range((end - start) // interval)]
     df = pl.DataFrame({"ds": timestamps,"T2M": r.Variables(0).ValuesAsNumpy(),"RH2M": r.Variables(1).ValuesAsNumpy(),"PRECTOTCORR": r.Variables(2).ValuesAsNumpy()})
 
-    start_filter = tz_colombia.localize(datetime(2025, 5, 15, 16, 15))
-    now = datetime.now(tz_colombia)
+    start_filter = datetime(2025, 5, 15, 16, 15)
+    now = datetime.now(tz_colombia).replace(tzinfo=None)  # También naive
     
     df = df.filter((pl.col("ds") >= start_filter) & (pl.col("ds") <= now))
     df = df.with_columns(pl.col("ds").dt.convert_time_zone(None))
