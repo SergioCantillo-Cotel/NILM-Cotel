@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 import polars as pl
 from pathlib import Path
-import pytz
+from zoneinfo import ZoneInfo
 
 credenciales_json = st.secrets["gcp_service_account"]
 BIGQUERY_PROJECT_ID = st.secrets["bigquery"]["project_id"]
@@ -75,49 +75,61 @@ def gen_others_load(df):
     return result
 
 def get_climate_data(lat, lon):
-    # Asegura que se obtiene correctamente la zona horaria
-    try:
-        tz_colombia = pytz.timezone("America/Bogota")
-    except Exception as e:
-        st.error(f"Error cargando zona horaria: {e}")
-        tz_colombia = timezone.utc  # Fallback a UTC si hay error
-
-    session = retry(requests_cache.CachedSession('.cache', expire_after=3600), retries=5, backoff_factor=0.2)
+    TZ = ZoneInfo("America/Bogota")
+    # sesión con retry
+    session = retry(
+        requests_cache.CachedSession('.cache', expire_after=3600),
+        retries=5, backoff_factor=0.2
+    )()
     client = openmeteo_requests.Client(session=session)
 
-    r = client.weather_api("https://api.open-meteo.com/v1/forecast", params={
-        "latitude": lat,
-        "longitude": lon,
-        "models": "gfs_seamless",
-        "minutely_15": ["temperature_2m", "relative_humidity_2m", "precipitation"],
-        "start_date": "2025-05-15",
-        "end_date": datetime.now().strftime("%Y-%m-%d")
-    })[0].Minutely15()
+    # ahora en Bogotá
+    now_local = datetime.now(TZ)
+    start_date = "2025-05-15"  # tu fecha fija
+    end_date = now_local.strftime("%Y-%m-%d")
 
-    # Convertir a hora local Colombia y quitar zona horaria (datetime naive)
-    start = datetime.utcfromtimestamp(r.Time()).astimezone(tz_colombia).replace(tzinfo=None)
-    end = datetime.utcfromtimestamp(r.TimeEnd()).astimezone(tz_colombia).replace(tzinfo=None)
-    st.write(start, end)
+    # llamamos a la API
+    response = client.weather_api(
+        "https://api.open-meteo.com/v1/forecast",
+        params={
+            "latitude": lat,
+            "longitude": lon,
+            "models": "gfs_seamless",
+            "minutely_15": ["temperature_2m", "relative_humidity_2m", "precipitation"],
+            "start_date": start_date,
+            "end_date": end_date
+        }
+    )[0].Minutely15()
 
-    interval = timedelta(seconds=r.Interval())
-    timestamps = [start + i * interval for i in range((end - start) // interval)]
+    # convertimos los timestamps respetando TZ Bogota
+    start_ts = datetime.fromtimestamp(response.Time(), TZ)
+    end_ts   = datetime.fromtimestamp(response.TimeEnd(), TZ)
+    st.write(start_ts, end_ts)
 
+    # generamos el rango de timestamps
+    interval = timedelta(seconds=response.Interval())
+    count = int((end_ts - start_ts) / interval) + 1
+    timestamps = [start_ts + i * interval for i in range(count)]
+
+    # construimos el DataFrame en Polars
     df = pl.DataFrame({
         "ds": timestamps,
-        "T2M": r.Variables(0).ValuesAsNumpy(),
-        "RH2M": r.Variables(1).ValuesAsNumpy(),
-        "PRECTOTCORR": r.Variables(2).ValuesAsNumpy()
+        "T2M":    response.Variables(0).ValuesAsNumpy(),
+        "RH2M":   response.Variables(1).ValuesAsNumpy(),
+        "PRECTOTCORR": response.Variables(2).ValuesAsNumpy()
     })
 
-    # Hora naive (sin zona horaria)
-    start_filter = datetime(2025, 5, 15, 16, 15)
-    now = datetime.now(tz_colombia).replace(tzinfo=None)
-    df = df.filter((pl.col("ds") >= start_filter) & (pl.col("ds") <= now))
+    # filtramos entre tu fecha fija (ajústala a TZ si lo deseas)
+    start_filter = datetime(2025, 5, 15, 0, 0, tzinfo=TZ)
+    df = df.filter(
+        (pl.col("ds") >= start_filter) &
+        (pl.col("ds") <= now_local)
+    )
 
     df_pandas = df.to_pandas()
     st.write(df_pandas)
     return df_pandas
-
+   
 # Función para obtener las métricas
 def get_metrics(general, ac, ssfv, otros):
     return {
