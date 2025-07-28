@@ -41,6 +41,6 @@ try:
     submedidores = tools.get_submedidores(metrics)
 
 except (IndexError, AttributeError, TypeError) as e:
-    st.error(f"Error al calcular métricas: {e}", icon="⚠️")
+    st.error(f"Error al calcular métricas: Intente nuevamente", icon="⚠️")
     st.stop()
 viz.render_NILM_tabs(submedidores, nombres_submedidores, viz.get_icons(), metrics, db_pow, Y_hat_df2, fecha_ini, fecha_fin, config_perc, config_hist)
