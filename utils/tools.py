@@ -83,6 +83,7 @@ def get_climate_data(lat, lon):
         "start_date": "2025-05-15","end_date": (datetime.now()).strftime("%Y-%m-%d")})[0].Minutely15()
 
     start, end = datetime.fromtimestamp(r.Time()), datetime.fromtimestamp(r.TimeEnd())
+    st.write(start, end)
     interval = timedelta(seconds=r.Interval())
     timestamps = [start + i * interval for i in range((end - start) // interval)]
     df = pl.DataFrame({"ds": timestamps,"T2M": r.Variables(0).ValuesAsNumpy(),"RH2M": r.Variables(1).ValuesAsNumpy(),"PRECTOTCORR": r.Variables(2).ValuesAsNumpy()})
