@@ -78,18 +78,16 @@ def get_climate_data(lat, lon):
     client = openmeteo_requests.Client(session=session)
     
     r = client.weather_api("https://api.open-meteo.com/v1/forecast", params={
-        "latitude": lat,"longitude": lon,"models": "gfs_seamless",
-        "minutely_15": ["temperature_2m", "relative_humidity_2m", "precipitation"],
+        "latitude": lat,"longitude": lon,"models": "gfs_seamless","minutely_15": ["temperature_2m", "relative_humidity_2m", "precipitation"],
         "start_date": "2025-05-15","end_date": (datetime.now() - timedelta(hours=5)).strftime("%Y-%m-%d")})[0].Minutely15()
 
     start, end = datetime.fromtimestamp(r.Time()), datetime.fromtimestamp(r.TimeEnd())
-    st.write(start,end)
     interval = timedelta(seconds=r.Interval())
     timestamps = [start + i * interval for i in range((end - start) // interval)]
     df = pl.DataFrame({"ds": timestamps,"T2M": r.Variables(0).ValuesAsNumpy(),"RH2M": r.Variables(1).ValuesAsNumpy(),"PRECTOTCORR": r.Variables(2).ValuesAsNumpy()})
     start_filter, now = datetime(2025, 5, 15, 16, 15), datetime.now() 
     df = df.with_columns([(pl.col("ds") - pl.duration(hours=5)).alias("ds")])
-    df = df.filter((pl.col("ds") >= start_filter) & (pl.col("ds") <= now - deltatime(hours=5)))
+    df = df.filter((pl.col("ds") >= start_filter) & (pl.col("ds") <= now - timedelta(hours=5)))
     df_pandas = df.to_pandas()
     st.write(df_pandas)
     return df_pandas
