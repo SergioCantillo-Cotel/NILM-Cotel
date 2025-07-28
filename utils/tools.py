@@ -46,7 +46,7 @@ def _get_cache(CACHE_PATH, _POWER):
     return df_cache, where_clause
 
 def read_bq_db(credentials, fecha_ini=None, fecha_fin=None):
-    fecha_fin = fecha_fin + timedelta(days=1)
+    fecha_fin += timedelta(days=1)
     _POWER = ['PM_General_Potencia_Activa_Total', 'PM_Aires_Potencia_Activa_Total', 'Inversor_Solar_Potencia_Salida']
     _MAPPING = _get_mapping()
     client = bigquery.Client(project=BIGQUERY_PROJECT_ID, credentials=credentials)
