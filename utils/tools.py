@@ -64,6 +64,7 @@ def read_bq_db(credentials, fecha_ini=None, fecha_fin=None):
     df = df.filter((pl.col("ds") >= fecha_ini) & (pl.col("ds") <= fecha_fin))
     df_power = gen_others_load(df)
     df_power_pa = df_power.to_pandas()
+    df_power_pa
     return df_power_pa
 
 def gen_others_load(df):
