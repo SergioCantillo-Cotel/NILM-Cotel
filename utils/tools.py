@@ -78,7 +78,7 @@ def get_climate_data(lat, lon):
     client = openmeteo_requests.Client(session=session)
     
     r = client.weather_api("https://api.open-meteo.com/v1/forecast", params={
-        "latitude": lat,"longitude": lon,"models": "gfs_seamless", "timezone": "America/Chicago",
+        "latitude": lat,"longitude": lon,"models": "gfs_seamless",
         "minutely_15": ["temperature_2m", "relative_humidity_2m", "precipitation"],
         "start_date": "2025-05-15","end_date": (datetime.now()).strftime("%Y-%m-%d")})[0].Minutely15()
 
