@@ -75,7 +75,12 @@ def gen_others_load(df):
     return result
 
 def get_climate_data(lat, lon):
-    tz_colombia = pytz.timezone("America/Bogota")
+    # Asegura que se obtiene correctamente la zona horaria
+    try:
+        tz_colombia = pytz.timezone("America/Bogota")
+    except Exception as e:
+        st.error(f"Error cargando zona horaria: {e}")
+        tz_colombia = timezone.utc  # Fallback a UTC si hay error
 
     session = retry(requests_cache.CachedSession('.cache', expire_after=3600), retries=5, backoff_factor=0.2)
     client = openmeteo_requests.Client(session=session)
@@ -89,9 +94,9 @@ def get_climate_data(lat, lon):
         "end_date": datetime.now().strftime("%Y-%m-%d")
     })[0].Minutely15()
 
-    # Convertir timestamps a hora local y quitar info de zona horaria
-    start = datetime.utcfromtimestamp(r.Time()).replace(tzinfo=timezone.utc).astimezone(tz_colombia).replace(tzinfo=None)
-    end = datetime.utcfromtimestamp(r.TimeEnd()).replace(tzinfo=timezone.utc).astimezone(tz_colombia).replace(tzinfo=None)
+    # Convertir a hora local Colombia y quitar zona horaria (datetime naive)
+    start = datetime.utcfromtimestamp(r.Time()).astimezone(tz_colombia).replace(tzinfo=None)
+    end = datetime.utcfromtimestamp(r.TimeEnd()).astimezone(tz_colombia).replace(tzinfo=None)
     st.write(start, end)
 
     interval = timedelta(seconds=r.Interval())
@@ -104,8 +109,9 @@ def get_climate_data(lat, lon):
         "PRECTOTCORR": r.Variables(2).ValuesAsNumpy()
     })
 
+    # Hora naive (sin zona horaria)
     start_filter = datetime(2025, 5, 15, 16, 15)
-    now = datetime.now(tz_colombia).replace(tzinfo=None)  # También naive
+    now = datetime.now(tz_colombia).replace(tzinfo=None)
     df = df.filter((pl.col("ds") >= start_filter) & (pl.col("ds") <= now))
 
     df_pandas = df.to_pandas()
