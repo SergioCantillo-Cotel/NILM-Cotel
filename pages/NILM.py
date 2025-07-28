@@ -23,9 +23,8 @@ nombres_submedidores = {"AC": "Aires Acondicionados","SSFV": "SSFV","otros": "Ot
 db_pow = tools.read_bq_db(credentials, fecha_ini, fecha_fin)
 lat, lon = 3.4793949016367822, -76.52284557701176
 datos = tools.get_climate_data(lat, lon)
-
-modelo_IA = ia_model.get_IA_model()
 try:
+    modelo_IA = ia_model.get_IA_model()
     caracteristicas = ia_model.datos_Exog(db_pow, datos).drop(columns=['ds'])
     car2 = caracteristicas.copy()
     Y_hat_raw = modelo_IA.predict(caracteristicas.values.reshape(-1, 1, caracteristicas.shape[1]))
