@@ -76,29 +76,38 @@ def gen_others_load(df):
 
 def get_climate_data(lat, lon):
     tz_colombia = pytz.timezone("America/Bogota")
+
     session = retry(requests_cache.CachedSession('.cache', expire_after=3600), retries=5, backoff_factor=0.2)
     client = openmeteo_requests.Client(session=session)
-    
-    r = client.weather_api("https://api.open-meteo.com/v1/forecast", params={
-        "latitude": lat,"longitude": lon,"models": "gfs_seamless",
-        "minutely_15": ["temperature_2m", "relative_humidity_2m", "precipitation"],
-        "start_date": "2025-05-15","end_date": (datetime.now()).strftime("%Y-%m-%d")})[0].Minutely15()
 
-    #start, end = datetime.fromtimestamp(r.Time()), datetime.fromtimestamp(r.TimeEnd())
+    r = client.weather_api("https://api.open-meteo.com/v1/forecast", params={
+        "latitude": lat,
+        "longitude": lon,
+        "models": "gfs_seamless",
+        "minutely_15": ["temperature_2m", "relative_humidity_2m", "precipitation"],
+        "start_date": "2025-05-15",
+        "end_date": datetime.now().strftime("%Y-%m-%d")
+    })[0].Minutely15()
+
+    # Convertir timestamps a hora local y quitar info de zona horaria
     start = datetime.utcfromtimestamp(r.Time()).replace(tzinfo=timezone.utc).astimezone(tz_colombia).replace(tzinfo=None)
     end = datetime.utcfromtimestamp(r.TimeEnd()).replace(tzinfo=timezone.utc).astimezone(tz_colombia).replace(tzinfo=None)
-    
     st.write(start, end)
+
     interval = timedelta(seconds=r.Interval())
     timestamps = [start + i * interval for i in range((end - start) // interval)]
-    df = pl.DataFrame({"ds": timestamps,"T2M": r.Variables(0).ValuesAsNumpy(),"RH2M": r.Variables(1).ValuesAsNumpy(),"PRECTOTCORR": r.Variables(2).ValuesAsNumpy()})
+
+    df = pl.DataFrame({
+        "ds": timestamps,
+        "T2M": r.Variables(0).ValuesAsNumpy(),
+        "RH2M": r.Variables(1).ValuesAsNumpy(),
+        "PRECTOTCORR": r.Variables(2).ValuesAsNumpy()
+    })
 
     start_filter = datetime(2025, 5, 15, 16, 15)
     now = datetime.now(tz_colombia).replace(tzinfo=None)  # También naive
-    
     df = df.filter((pl.col("ds") >= start_filter) & (pl.col("ds") <= now))
-    df = df.with_columns(pl.col("ds").dt.convert_time_zone(None))
-    
+
     df_pandas = df.to_pandas()
     st.write(df_pandas)
     return df_pandas
