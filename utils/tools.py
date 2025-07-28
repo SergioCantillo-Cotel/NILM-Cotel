@@ -64,7 +64,6 @@ def read_bq_db(credentials, fecha_ini=None, fecha_fin=None):
     df = df.filter((pl.col("ds") >= fecha_ini) & (pl.col("ds") <= fecha_fin))
     df_power = gen_others_load(df)
     df_power_pa = df_power.to_pandas()
-    st.write(df_power_pa)
     return df_power_pa
 
 def gen_others_load(df):
@@ -90,6 +89,7 @@ def get_climate_data(lat, lon):
     start_filter, now = datetime(2025, 5, 15, 16, 15), datetime.now() - pd.Timedelta(hours=5)
     df = df.filter((pl.col("ds") >= start_filter) & (pl.col("ds") <= now))
     df_pandas = df.to_pandas()
+    st.write(df_pandas)
     return df_pandas
 
 # Función para obtener las métricas
