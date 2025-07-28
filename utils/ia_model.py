@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 def get_IA_model():
-    IA_model = load_model('IA/NILM_Model_best.keras')
+    IA_model = load_model('IA/NILM_Model_best.keras', compile=False)
     return IA_model
 
 def datos_Exog(db, datos):
