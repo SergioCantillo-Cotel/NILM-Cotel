@@ -74,62 +74,24 @@ def gen_others_load(df):
     return result
 
 def get_climate_data(lat, lon):
-    BOG_OFFSET = timedelta(hours=5)
-    # sesión con retry
-    session = retry(
-        requests_cache.CachedSession('.cache', expire_after=3600),
-        retries=5, backoff_factor=0.2
-    )()
+    session = retry(requests_cache.CachedSession('.cache', expire_after=3600), retries=5, backoff_factor=0.2)
     client = openmeteo_requests.Client(session=session)
+    
+    r = client.weather_api("https://api.open-meteo.com/v1/forecast", params={
+        "latitude": lat,"longitude": lon,"models": "gfs_seamless",
+        "minutely_15": ["temperature_2m", "relative_humidity_2m", "precipitation"],
+        "start_date": "2025-05-15","end_date": datetime.now().strftime("%Y-%m-%d")})[0].Minutely15()
 
-    # definimos fechas para la API
-    start_date = "2025-05-15"
-    # now en UTC y luego restamos el offset para Bogotá
-    now_local = datetime.utcnow() - BOG_OFFSET
-    end_date = now_local.strftime("%Y-%m-%d")
-
-    # llamada a la API
-    response = client.weather_api(
-        "https://api.open-meteo.com/v1/forecast",
-        params={
-            "latitude": lat,
-            "longitude": lon,
-            "models": "gfs_seamless",
-            "minutely_15": ["temperature_2m", "relative_humidity_2m", "precipitation"],
-            "start_date": start_date,
-            "end_date": end_date
-        }
-    )[0].Minutely15()
-
-    # convertimos los epoch-times: UTC → local naively
-    start_ts = datetime.utcfromtimestamp(response.Time()) - BOG_OFFSET
-    end_ts   = datetime.utcfromtimestamp(response.TimeEnd()) - BOG_OFFSET
-    st.write(start_ts, end_ts)   # e.g. 2025-05-14 19:00:00 2025-07-28 19:00:00
-
-    # construimos los timestamps
-    interval = timedelta(seconds=response.Interval())
-    total_points = int((end_ts - start_ts) / interval) + 1
-    timestamps = [start_ts + i * interval for i in range(total_points)]
-
-    # DataFrame Polars
-    df = pl.DataFrame({
-        "ds": timestamps,
-        "T2M":         response.Variables(0).ValuesAsNumpy(),
-        "RH2M":        response.Variables(1).ValuesAsNumpy(),
-        "PRECTOTCORR": response.Variables(2).ValuesAsNumpy(),
-    })
-
-    # filtramos desde la fecha fija en Bogotá
-    start_filter = datetime(2025, 5, 15, 0, 0)  # naive
-    df = df.filter(
-        (pl.col("ds") >= start_filter) &
-        (pl.col("ds") <= now_local)
-    )
-
+    start, end = datetime.fromtimestamp(r.Time()), datetime.fromtimestamp(r.TimeEnd())
+    st.write(start,end)
+    interval = timedelta(seconds=r.Interval())
+    timestamps = [start + i * interval for i in range((end - start) // interval)]
+    df = pl.DataFrame({"ds": timestamps,"T2M": r.Variables(0).ValuesAsNumpy(),"RH2M": r.Variables(1).ValuesAsNumpy(),"PRECTOTCORR": r.Variables(2).ValuesAsNumpy()})
+    start_filter, now = datetime(2025, 5, 15, 16, 15), datetime.now()
+    df = df.filter((pl.col("ds") >= start_filter) & (pl.col("ds") <= now))
     df_pandas = df.to_pandas()
     st.write(df_pandas)
     return df_pandas
-    
    
 # Función para obtener las métricas
 def get_metrics(general, ac, ssfv, otros):
