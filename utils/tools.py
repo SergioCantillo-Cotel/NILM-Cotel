@@ -97,6 +97,8 @@ def get_climate_data(lat, lon):
     now = datetime.now(tz_colombia)
     
     df = df.filter((pl.col("ds") >= start_filter) & (pl.col("ds") <= now))
+    df = df.with_columns(pl.col("ds").dt.convert_time_zone(None))
+    
     df_pandas = df.to_pandas()
     st.write(df_pandas)
     return df_pandas
