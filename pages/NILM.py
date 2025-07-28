@@ -8,10 +8,12 @@ tools.quarter_autorefresh()
 credentials = tools.bigquery_auth()
 
 st.sidebar.markdown("##### Parámetros de Visualización")
-try:
-    fecha_ini, fecha_fin = st.sidebar.date_input("Periodo", (pd.Timestamp.now() - pd.Timedelta(hours=5) - pd.Timedelta(weeks=1), pd.Timestamp.now() - pd.Timedelta(hours=5)), min_value='2025-05-15', max_value=pd.Timestamp.now() - pd.Timedelta(hours=5), key='rango_fecha_NILM')
-except ValueError as e:
-    st.toast("Esperando la seleccion de fecha. Por favor, elija un rango válido.", icon="⏳")
+
+rango = st.sidebar.date_input("Periodo", (pd.Timestamp.now() - pd.Timedelta(hours=5) - pd.Timedelta(weeks=1), pd.Timestamp.now() - pd.Timedelta(hours=5)), min_value='2025-05-15', max_value=pd.Timestamp.now() - pd.Timedelta(hours=5), key='rango_fecha_NILM')   
+if isinstance(rango, tuple) and len(rango) == 2:
+    fecha_ini, fecha_fin = rango
+else:
+    st.toast("Esperando selección de un rango válido de fechas.", icon="⏳")
     fecha_ini, fecha_fin = pd.Timestamp.now() - pd.Timedelta(weeks=1) - pd.Timedelta(hours=5), pd.Timestamp.now() - pd.Timedelta(hours=5)
 
 config_perc = st.sidebar.checkbox("Mostrar distribución de consumo energético en periodo de visualización", value=False, key='config_perc_NILM')
