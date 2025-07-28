@@ -26,7 +26,7 @@ nombres_submedidores = {"AC": "Aires Acondicionados","SSFV": "SSFV","otros": "Ot
 db_pow = tools.read_bq_db(credentials, fecha_ini, fecha_fin)
 lat, lon = 3.4793949016367822, -76.52284557701176
 datos = tools.get_climate_data(lat, lon)
-st.write(db_pow, db_datos)
+st.write(db_pow, datos)
 modelo_IA = ia_model.get_IA_model()
 caracteristicas = ia_model.datos_Exog(db_pow, datos).drop(columns=['ds'])
 car2 = caracteristicas.copy()
