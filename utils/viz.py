@@ -87,7 +87,7 @@ def display_participacion(percentages):
     colors = [COLOR_MAP.get(label, '#CCCCCC') for label in percentages.keys()]
     participacion = go.Figure(go.Pie(labels=list(percentages.keys()), values=list(percentages.values()), marker=dict(colors=colors),
                                      hole=0.5, textinfo='label+percent', insidetextorientation='horizontal', showlegend=False, textposition='outside'))
-    participacion.update_layout(margin=dict(l=20, r=20, t=20, b=20),height=160, font=dict(family="Poppins", size=14, color="#000"),)
+    participacion.update_layout(margin=dict(l=25, r=25, t=25, b=25),height=160, font=dict(family="Poppins", size=14, color="#000"),)
     st.plotly_chart(participacion, use_container_width=True)
 
 def display_peak_load(df):
