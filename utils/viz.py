@@ -20,7 +20,7 @@ def mostrar_imagen(path, width=150):
 
 def graficar_consumo(df,pron,sub,fecha_ini=None, fecha_fin=None, altura=210):
     if fecha_ini is not None and fecha_fin is not None:
-        fecha_ini_dt, fecha_fin_dt = pd.to_datetime(fecha_ini), pd.to_datetime(fecha_fin)
+        fecha_ini_dt, fecha_fin_dt = pd.to_datetime(fecha_ini), pd.to_datetime(fecha_fin) + timedelta(days=1)
         df = df[(df["ds"] >= fecha_ini_dt) & (df["ds"] <= fecha_fin_dt)]
         if not sub:
             pron = pron[(pron.index >= fecha_ini_dt) & (pron.index <= fecha_fin_dt)]
