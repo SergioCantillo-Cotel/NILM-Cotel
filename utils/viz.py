@@ -69,7 +69,7 @@ def display_general(icons, metrics, db, pron, fecha_ini, fecha_fin, config_perc,
             with cb:
                 render_custom_metric(cb, "Medición General", metrics['General']['energia']+" kWh","")
 
-            get_percentages = tools.get_percentages(pron['Aires Acondicionados'].sum(), pron['SSFV'].sum(), pron['Otros'].sum())
+            get_percentages = tools.get_percentages(pron['Aires Acondicionados'].sum(), pron['Otros'].sum())
             if config_perc:
                 st.markdown("<div style='text-align: center; margin-bottom:-30px;'><h6 style='margin-bottom: 0;'>Distribución Consumo Energético</h6></div>", unsafe_allow_html=True)
                 display_participacion(get_percentages)
@@ -77,11 +77,13 @@ def display_general(icons, metrics, db, pron, fecha_ini, fecha_fin, config_perc,
             df = db.loc[db["unique_id"] == 'General',['ds','value']]
             graficar_consumo(df,pron,False,fecha_ini,fecha_fin,360)
         if config_hist:    
-            coli,colj = st.columns([1, 1], vertical_alignment='center')
+            coli,colj,colk = st.columns([2, 2, 3], vertical_alignment='center')
             with coli:
                 display_peak_load(df)
             with colj:
                 display_prom_load(df)
+            with colk:
+                display_PV(pron['Aires Acondicionados'].sum(), pron['SSFV'].sum() ,pron['Otros'].sum())
 
 def display_participacion(percentages):
     colors = [COLOR_MAP.get(label, '#CCCCCC') for label in percentages.keys()]
@@ -97,6 +99,10 @@ def display_peak_load(df):
 def display_prom_load(df):
     prom = tools.get_prom_load(df)
     render_custom_metric(st, "Consumo Promedio", f"{prom['valor']} kWh" ,sym="")
+
+def display_PV(ac,ssfv,otros):
+    prom = tools.get_PV_percentages(ac,ssfv,otros)
+    render_custom_metric(st, "Aportes SSFV", f"{ac:.2f} kWh ({prom:.1f} %)" ,sym="")
 
 def display_submedidores(submedidores, nombres_submedidores, icons, metrics, db, pron, fecha_ini, fecha_fin):
     cols = st.columns(len(submedidores))
