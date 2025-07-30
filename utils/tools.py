@@ -100,13 +100,16 @@ def get_metrics(general, ac, ssfv, otros):
         "Otros": {"energia": f"{otros:.1f}"},
     }
 
-def get_percentages(ac, ssfv, otros):
-    general = ac + ssfv + otros
+def get_percentages(ac, otros):
+    general = ac + otros
     return {
         "AC": round((ac / general) * 100, 2),
-        "SSFV": round((ssfv / general) * 100, 2),
         "Otros": round((otros / general) * 100, 2),
     }
+
+def get_PV_percentages(ac, ssfv, otros):
+    general = ac + ssfv + otros
+    return round((ssfv / general) * 100, 2)
     
 def get_peak_load(df):
     peak_row = df.loc[df['value'].idxmax()]
