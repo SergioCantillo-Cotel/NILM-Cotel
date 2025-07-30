@@ -58,6 +58,8 @@ def graficar_consumo(df,pron,sub,fecha_ini=None, fecha_fin=None, altura=210):
     st.plotly_chart(fig, use_container_width=True)
 
 def display_general(icons, metrics, db, pron, fecha_ini, fecha_fin, config_perc, config_hist):
+    fecha_ini_dt, fecha_fin_dt = pd.to_datetime(fecha_ini), pd.to_datetime(fecha_fin) + timedelta(days=1)
+    pron = pron[(pron.index >= fecha_ini_dt) & (pron.index <= fecha_fin_dt)]
     total = db.loc[db["unique_id"] == 'General', 'value'].abs().sum()
     with st.container(border=False, key='nilm-gen'):
         colg,colh = st.columns([1, 2], vertical_alignment='center')
